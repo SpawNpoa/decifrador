@@ -7,6 +7,6 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "yourusername"
+      - "SpawNpoa"
     assignees:
-      - "yourusername" 
+      - "SpawNpoa" 

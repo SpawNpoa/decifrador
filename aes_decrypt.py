@@ -4,7 +4,7 @@
 AES-CBC Decryptor
 Decifrador de texto usando algoritmo AES em modo CBC (Cipher Block Chaining)
 
-Author: Your Name
+Author: Lucas Spawn
 Version: 1.0.0
 License: MIT
 """

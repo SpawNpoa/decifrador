@@ -9,7 +9,7 @@ description = "AES-CBC text decryption tool"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "Lucas Spawn", email = "lucas@spawn.dev"}
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -33,9 +33,9 @@ dependencies = [
 aes-decryptor = "aes_decrypt:main"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/aes-cbc-decryptor"
-Repository = "https://github.com/yourusername/aes-cbc-decryptor"
-Issues = "https://github.com/yourusername/aes-cbc-decryptor/issues"
+Homepage = "https://github.com/SpawNpoa/decifrador"
+Repository = "https://github.com/SpawNpoa/decifrador"
+Issues = "https://github.com/SpawNpoa/decifrador/issues"
 
 [tool.setuptools]
 packages = ["."]

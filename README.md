@@ -99,7 +99,7 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 
 ## 👨‍💻 Autor
 
-**Seu Nome** - [@seutwitter](https://twitter.com/seutwitter)
+**Lucas Spawn** - [@lucasspawn](https://twitter.com/lucasspawn)
 
 ## 🙏 Agradecimentos
 
