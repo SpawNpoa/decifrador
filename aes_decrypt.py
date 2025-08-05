@@ -14,6 +14,8 @@ from Crypto.Util.Padding import unpad, pad
 import binascii
 import os
 import base64
+import hashlib
+import secrets
 
 def hex_to_bytes(hex_string):
     """Converte string hexadecimal para bytes"""
@@ -26,6 +28,33 @@ def hex_to_base64(hex_string):
 def base64_to_hex(base64_string):
     """Converte string Base64 para hexadecimal"""
     return binascii.hexlify(base64.b64decode(base64_string)).decode('utf-8')
+
+def generate_diffie_hellman_b():
+    """Gera um valor aleatório b com no mínimo 40 dígitos e menor que p"""
+    p = 1041607122029938459843911326429539139964006065005940226363139
+    # Gerar um número aleatório com pelo menos 40 dígitos
+    min_b = 10**39  # 40 dígitos
+    max_b = p - 1
+    b = secrets.randbelow(max_b - min_b) + min_b
+    return b
+
+def calculate_diffie_hellman_b(p, g, b):
+    """Calcula B = g^b mod p"""
+    return pow(g, b, p)
+
+def calculate_diffie_hellman_v(p, A, b):
+    """Calcula v = A^b mod p"""
+    return pow(A, b, p)
+
+def generate_shared_key(v):
+    """Gera a chave compartilhada usando SHA256 e pega os primeiros 128 bits"""
+    # Converter v para string
+    v_str = str(v)
+    # Calcular SHA256
+    sha256_hash = hashlib.sha256(v_str.encode('utf-8')).hexdigest()
+    # Pegar os primeiros 128 bits (32 caracteres hex)
+    shared_key = sha256_hash[:32]
+    return shared_key
 
 def decrypt_aes_cbc(key_hex, ciphertext_hex, iv_hex):
     """
@@ -110,6 +139,7 @@ def main():
     print("Digite 'exemplo' para usar os dados de exemplo")
     print("Digite 'cifrar' para cifrar texto com AES-CTR")
     print("Digite 'converter' para converter entre hex e Base64")
+    print("Digite 'diffie' para troca de chaves Diffie-Hellman")
     print("=" * 60)
     
     while True:
@@ -205,6 +235,71 @@ def main():
                     print(f"❌ Erro na conversão: {str(e)}")
             else:
                 print("❌ Opção inválida!")
+            
+            print("\n" + "=" * 60)
+            print("🔄 Pronto para próxima operação...")
+            print("=" * 60)
+            continue
+        elif key_hex.lower() == 'diffie':
+            print("\n" + "=" * 60)
+            print("🔑 TROCA DE CHAVES DIFFIE-HELLMAN")
+            print("=" * 60)
+            
+            # Parâmetros Diffie-Hellman
+            p = 1041607122029938459843911326429539139964006065005940226363139
+            g = 10
+            A = 105008283869277434967871522668292359874644989537271965222162
+            
+            print(f"📊 Parâmetros:")
+            print(f"   p = {p}")
+            print(f"   g = {g}")
+            print(f"   A (de Alice) = {A}")
+            print()
+            
+            print("🔄 Gerando valor b aleatório...")
+            b = generate_diffie_hellman_b()
+            print(f"✅ Valor b gerado: {b}")
+            print(f"📊 Número de dígitos: {len(str(b))}")
+            
+            print("\n🔄 Calculando B = g^b mod p...")
+            B = calculate_diffie_hellman_b(p, g, b)
+            print(f"✅ Valor B calculado: {B}")
+            
+            print("\n🔄 Calculando v = A^b mod p...")
+            v = calculate_diffie_hellman_v(p, A, b)
+            print(f"✅ Valor v calculado: {v}")
+            
+            print("\n🔄 Gerando chave compartilhada k...")
+            k = generate_shared_key(v)
+            print(f"✅ Chave compartilhada k: {k}")
+            
+            # Salvar resultados em arquivo
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f'diffie_hellman_{timestamp}.txt'
+            
+            try:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write(f"=== TROCA DE CHAVES DIFFIE-HELLMAN ===\n")
+                    f.write(f"Data/Hora: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n\n")
+                    f.write(f"Parâmetros:\n")
+                    f.write(f"  p = {p}\n")
+                    f.write(f"  g = {g}\n")
+                    f.write(f"  A (de Alice) = {A}\n\n")
+                    f.write(f"Tarefa 2.1:\n")
+                    f.write(f"  Valor b gerado: {b}\n")
+                    f.write(f"  Número de dígitos: {len(str(b))}\n")
+                    f.write(f"  Valor B calculado: {B}\n")
+                    f.write(f"  Fórmula: B = g^b mod p = {g}^{b} mod {p} = {B}\n\n")
+                    f.write(f"Tarefa 2.2:\n")
+                    f.write(f"  Valor v calculado: {v}\n")
+                    f.write(f"  Fórmula: v = A^b mod p = {A}^{b} mod {p} = {v}\n\n")
+                    f.write(f"Chave compartilhada:\n")
+                    f.write(f"  k (hex): {k}\n")
+                    f.write(f"  Processo: SHA256({v})[:32] = {k}\n")
+                print(f"💾 Resultados salvos em '{filename}'")
+            except Exception as e:
+                print(f"❌ Erro ao salvar arquivo: {str(e)}")
             
             print("\n" + "=" * 60)
             print("🔄 Pronto para próxima operação...")
