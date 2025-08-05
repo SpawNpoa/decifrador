@@ -132,6 +132,7 @@ dmypy.json
 resultado.txt
 texto_claro.txt
 decrypted_text_*.txt
+encrypted_text_*.txt
 
 # IDE
 .vscode/

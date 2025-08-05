@@ -10,12 +10,22 @@ License: MIT
 """
 
 from Crypto.Cipher import AES
-from Crypto.Util.Padding import unpad
+from Crypto.Util.Padding import unpad, pad
 import binascii
+import os
+import base64
 
 def hex_to_bytes(hex_string):
     """Converte string hexadecimal para bytes"""
     return binascii.unhexlify(hex_string)
+
+def hex_to_base64(hex_string):
+    """Converte string hexadecimal para Base64"""
+    return base64.b64encode(binascii.unhexlify(hex_string)).decode('utf-8')
+
+def base64_to_hex(base64_string):
+    """Converte string Base64 para hexadecimal"""
+    return binascii.hexlify(base64.b64decode(base64_string)).decode('utf-8')
 
 def decrypt_aes_cbc(key_hex, ciphertext_hex, iv_hex):
     """
@@ -52,11 +62,54 @@ def decrypt_aes_cbc(key_hex, ciphertext_hex, iv_hex):
     except Exception as e:
         return f"Erro na decifração: {str(e)}"
 
+def encrypt_aes_ctr(key_hex, plaintext, iv_hex=None):
+    """
+    Cifra texto usando AES-CTR
+    
+    Args:
+        key_hex (str): Chave AES em hexadecimal
+        plaintext (str): Texto claro para cifrar
+        iv_hex (str): Vetor de inicialização em hexadecimal (opcional, gera aleatório se None)
+    
+    Returns:
+        tuple: (iv_hex, ciphertext_hex) - IV e texto cifrado em hexadecimal
+    """
+    try:
+        # Converter chave hex para bytes
+        key = hex_to_bytes(key_hex)
+        
+        # Gerar IV aleatório se não fornecido
+        if iv_hex is None:
+            iv = os.urandom(16)  # 128 bits = 16 bytes
+            iv_hex = binascii.hexlify(iv).decode('utf-8')
+        else:
+            iv = hex_to_bytes(iv_hex)
+        
+        # Converter texto para bytes e aplicar padding PKCS7
+        plaintext_bytes = plaintext.encode('utf-8')
+        padded_plaintext = pad(plaintext_bytes, AES.block_size)
+        
+        # Criar objeto de cifração AES-CTR
+        cipher = AES.new(key, AES.MODE_CTR, nonce=iv[:8], initial_value=int.from_bytes(iv[8:], 'big'))
+        
+        # Cifrar o texto
+        ciphertext = cipher.encrypt(padded_plaintext)
+        
+        # Converter para hexadecimal
+        ciphertext_hex = binascii.hexlify(ciphertext).decode('utf-8')
+        
+        return iv_hex, ciphertext_hex
+        
+    except Exception as e:
+        return None, f"Erro na cifração: {str(e)}"
+
 def main():
     """Função principal"""
-    print("🔐 === DECIFRADOR AES-CBC INTERATIVO === 🔐")
+    print("🔐 === DECIFRADOR/CIFRADOR AES INTERATIVO === 🔐")
     print("Digite 'sair' para encerrar o programa")
     print("Digite 'exemplo' para usar os dados de exemplo")
+    print("Digite 'cifrar' para cifrar texto com AES-CTR")
+    print("Digite 'converter' para converter entre hex e Base64")
     print("=" * 60)
     
     while True:
@@ -78,6 +131,85 @@ def main():
             print(f"   Chave: {key_hex}")
             print(f"   IV: {iv_hex}")
             print(f"   Texto cifrado: {ciphertext_hex[:32]}...")
+        elif key_hex.lower() == 'cifrar':
+            print("\n" + "=" * 60)
+            print("🔒 CIFRAÇÃO AES-CTR")
+            print("=" * 60)
+            
+            # Dados para cifração
+            ctr_key = "33A18467DB4AF474B051523A73DDA955"
+            
+            print(f"🔑 Chave CTR: {ctr_key}")
+            print(f"📝 Digite o texto que será cifrado:")
+            plaintext = input("Texto: ").strip()
+            
+            if not plaintext:
+                print("❌ Texto não pode estar vazio!")
+                continue
+            
+            print(f"🔄 Gerando IV aleatório...")
+            
+            # Cifrar o texto
+            iv_hex, ciphertext_hex = encrypt_aes_ctr(ctr_key, plaintext)
+            
+            if iv_hex and not ciphertext_hex.startswith("Erro"):
+                print(f"\n✅ CIFRAÇÃO CONCLUÍDA!")
+                print(f"🔐 IV (Counter): {iv_hex}")
+                print(f"🔒 Texto cifrado: {ciphertext_hex}")
+                print(f"📊 Tamanho do texto cifrado: {len(ciphertext_hex)//2} bytes")
+                
+                # Salvar resultado em arquivo com timestamp
+                from datetime import datetime
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f'encrypted_text_{timestamp}.txt'
+                
+                try:
+                    with open(filename, 'w', encoding='utf-8') as f:
+                        f.write(f"Data/Hora: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}\n")
+                        f.write(f"Modo: AES-CTR\n")
+                        f.write(f"Chave: {ctr_key}\n")
+                        f.write(f"IV (Counter): {iv_hex}\n")
+                        f.write(f"Texto claro: {plaintext}\n")
+                        f.write(f"Texto cifrado: {ciphertext_hex}\n")
+                    print(f"💾 Resultado salvo em '{filename}'")
+                except Exception as e:
+                    print(f"❌ Erro ao salvar arquivo: {str(e)}")
+            else:
+                print(f"\n❌ {ciphertext_hex}")
+            
+            print("\n" + "=" * 60)
+            print("🔄 Pronto para próxima operação...")
+            print("=" * 60)
+            continue
+        elif key_hex.lower() == 'converter':
+            print("\n" + "=" * 60)
+            print("🔄 CONVERSOR HEX ↔ BASE64")
+            print("=" * 60)
+            print("1. Hex → Base64")
+            print("2. Base64 → Hex")
+            choice = input("Escolha (1 ou 2): ").strip()
+            
+            if choice == '1':
+                hex_input = input("Digite o valor em hexadecimal: ").strip()
+                try:
+                    base64_output = hex_to_base64(hex_input)
+                    print(f"✅ Base64: {base64_output}")
+                except Exception as e:
+                    print(f"❌ Erro na conversão: {str(e)}")
+            elif choice == '2':
+                base64_input = input("Digite o valor em Base64: ").strip()
+                try:
+                    hex_output = base64_to_hex(base64_input)
+                    print(f"✅ Hexadecimal: {hex_output}")
+                except Exception as e:
+                    print(f"❌ Erro na conversão: {str(e)}")
+            else:
+                print("❌ Opção inválida!")
+            
+            print("\n" + "=" * 60)
+            print("🔄 Pronto para próxima operação...")
+            print("=" * 60)
+            continue
         else:
             ciphertext_hex = input("🔒 Texto cifrado (hex): ").strip()
             if ciphertext_hex.lower() == 'sair':
