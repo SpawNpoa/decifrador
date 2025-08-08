@@ -1,29 +1,11 @@
 @echo off
-echo ========================================
-echo    AES-CBC Decryptor - Executor Interativo
-echo ========================================
-echo.
+set PYTHON_CMD=C:\Users\SpawN\AppData\Local\Programs\Python\Python311\python.exe
 
-if not exist ".venv\Scripts\python.exe" (
-    echo ❌ Ambiente virtual nao encontrado.
-    echo Execute install.bat primeiro.
+if not exist "%PYTHON_CMD%" (
+    echo Python nao encontrado.
     pause
     exit /b 1
 )
 
-echo ✅ Executando decifrador AES-CBC interativo...
-echo.
-echo 💡 DICAS:
-echo    - Digite 'exemplo' para usar dados de teste
-echo    - Digite 'sair' para encerrar o programa
-echo    - Cada decifração será salva em arquivo separado
-echo.
-
-.venv\Scripts\python.exe aes_decrypt.py
-
-echo.
-echo ========================================
-echo    Programa encerrado!
-echo ========================================
-echo.
+"%PYTHON_CMD%" aes_decrypt.py
 pause 
